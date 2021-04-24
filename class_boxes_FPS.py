@@ -32,13 +32,13 @@ class boxes():
             theta_list.append(theta)
             x_y.append((x, y))
         stick_result = [len(i[0]) for i in x_y]
-        print('stick result: ', stick_result)
+        # print('stick result: ', stick_result)
         max_num = 1
         for i in set(stick_result):
             if stick_result.count(i) >= max_num:
                 max_num = stick_result.count(i)
                 num_stick = i
-        print('The number of sticks is: ', num_stick)
+        # print('The number of sticks is: ', num_stick)
         # formula1 : 求取最长的线段
         b = stick_result.count(num_stick)
         c = -1
@@ -77,8 +77,8 @@ class boxes():
         img = cv2.imread(self.path)  # (480, 520, 3) col, row, channel
         for i in range(num_stick):
             img = cv2.line(img, (y1[i], x1[i]), (y2[i], x2[i]), (255, 0, 0), 5)
-        plt.imshow(img)
-        plt.show()
+        # plt.imshow(img)
+        # plt.show() ###### show stems 1
         self.num_stick = len(x1)
         self.start, self.end = start, end
 
@@ -114,21 +114,21 @@ class boxes():
             line_data = img[xx, yy]  # img[row, col]
             #
             img = cv2.line(img, (yy[0], xx[0]), (yy[-1], xx[-1]), (255, 0, 0), 5)
-            plt.imshow(img) #plt.show()
+            # plt.imshow(img) # show leave line 2
             # plt.plot(line_data[:,0]),plt.title(order),plt.show()
             #
             data = list(line_data[:, 0])
             result.append(np.mean(data))
             # plt.plot(xx)
-        plt.show()
+        # plt.show() ###### show
         result_rate = [i / max(result) for i in result]
-        plt.plot(result), plt.title('result')
+        # plt.plot(result), plt.title('result') # show result 3
         white_index = []
         for index,item in enumerate(result):
             if item > 100 and result_rate[index] > 0.75: # 105 : light_threhold, 0.78 : rate_threhold
                 white_index.append(index)
-                plt.scatter(index, item, color='r')
-        plt.show()
+                # plt.scatter(index, item, color='r') # show white result 4
+        # plt.show() ###### show
         return white_index
 
     def visual_result(self, start_list, end_list ,white_index):
@@ -143,7 +143,7 @@ class boxes():
                 x_c1, y_c1 = third_point((x1[i], y1[i]), (x2[i], y2[i]), 120) # 380
                 x_c2, y_c2 = third_point((x1[j], y1[j]), (x2[j], y2[j]), 120) # 380
                 dist_dict[(i, j)] = diff(np.array([x_c1, y_c1]), np.array([x_c2, y_c2]))
-        print('距离字典：',dist_dict)
+        # print('距离字典：',dist_dict)
         threhold_value = 60
         key_rm, fate_white_index = [], []
         for key,value in dist_dict.items():
@@ -156,13 +156,13 @@ class boxes():
             box_len = 20 # 50
             draw_box(img, (y_leave - box_len, x_leave - box_len), (y_leave + box_len, x_leave + box_len), color = 'r')
         ################################
-        print(white_index)
+        # print(white_index)
         for order in white_index:
             x_leave, y_leave = third_point((x1[order], y1[order]), (x2[order], y2[order]), 130) # 380
             box_len = 20 # 50
             draw_box(img, (y_leave - box_len, x_leave - box_len), (y_leave + box_len, x_leave + box_len),  color = 'g')
-        plt.imshow(img)
-        plt.show()
+        # plt.imshow(img) # show final results 5
+        # plt.show() ###### show
 
 def diff(array1,array2):
     result = np.sqrt(np.sum((array1 - array2) ** 2))
@@ -183,11 +183,11 @@ def identify_stick(img, detect_len, center):
     for i in range(1,len(gray)-1):
         if gray[i] < (gray[i-1] + gray[i+1]) * threhold_relative and gray[i] < 160: # add 160 edge!!!
             theta.append(i)
-    print('theta:',theta)
-    print('length of theta:',len(theta)) 
+    # print('theta:',theta)
+    # print('length of theta:',len(theta)) 
     # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     if len(theta) <= 1:
-        print('No valley is found')
+        # print('No valley is found')
         return [0], [0], 0
     new_theta = [[] for i in range(len(theta))]
     j = 0
@@ -199,7 +199,7 @@ def identify_stick(img, detect_len, center):
             # print('i am here')
             j += 1
             new_theta[j].append(theta[index+1])
-    print('new_theta:',new_theta)
+    # print('new_theta:',new_theta)
     theta = []
     for lst in new_theta:
         if lst == []:
@@ -214,8 +214,8 @@ def identify_stick(img, detect_len, center):
             pos = int(pos[0])
         theta.append(pos)
 
-    print('new theta:',theta)
-    print('length of new theta:',len(theta)) 
+    # print('new theta:',theta)
+    # print('length of new theta:',len(theta)) 
     # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     stick_x = [int(center[0] + detect_len*cos(i/180*pi)) for i in theta]
     stick_y = [int(center[1] + detect_len*sin(i/180*pi)) for i in theta]
@@ -238,6 +238,7 @@ def draw_box(img, left_top, right_down, color = 'r'):
     return img
 
 def main():
+    t_list = []
     for i in range(5,120):
         t_start = time.time()
         my_box = boxes(path = 'standard_competition/IMAGE_JPEG/' + str(10001+i) + '.jpg')
@@ -246,7 +247,16 @@ def main():
         my_box.visual_result((x1,y1), (x2,y2), white_index)
         # my_box.all_box((x1,y1), (x2,y2))
         t_end = time.time()
+        t_list.append(t_end - t_start)
         print('It takes me %f seconds to draw'%(t_end - t_start))
 
+    plt.figure(1)
+    plt.axhline(y = np.mean(t_list), color='y', linestyle='-')
+    plt.legend(['Average time per image'])
+    plt.xlabel('order of img')
+    plt.ylabel('time / s')
+    plt.plot(t_list),plt.title('Time of my classificaton')
+    plt.show()
+    print('It takes me %f in average, and my FPS = %f'%(np.mean(t_list), (1 / np.mean(t_list))))
 if __name__ == '__main__':
     main()
