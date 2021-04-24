@@ -26,8 +26,10 @@ class boxes():
         circle_len = list(range(50, 90, step))
         # 滤除杂波，确定茎干数目
         x_y = []
+        theta_list = []
         for i in range(len(circle_len)):
             x, y, theta = identify_stick(img, circle_len[i], center)
+            theta_list.append(theta)
             x_y.append((x, y))
         stick_result = [len(i[0]) for i in x_y]
         print('stick result: ', stick_result)
@@ -37,7 +39,7 @@ class boxes():
                 max_num = stick_result.count(i)
                 num_stick = i
         print('The number of sticks is: ', num_stick)
-        # 求取最长的线段
+        # formula1 : 求取最长的线段
         b = stick_result.count(num_stick)
         c = -1
         for i in range(b):
@@ -46,7 +48,28 @@ class boxes():
                 start = c
             if i == b - 1:
                 end = c
-        #     print(num_stick,c)
+        index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
+        for i in range(len(index_theta) - 2):
+            difference = diff(np.array(theta_list[start]), np.array(theta_list[end]))
+            if difference <= 30:
+                break
+            else:
+                end = index_theta[-i-2]
+        if difference > 20:
+            end = index_theta[-1]
+        # formula2 : 求取最相似的角度
+        # index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
+        # dic = {}
+        # for i in index_theta:
+        #     for j in index_theta:
+        #         dic[(i,j)] = diff(np.array(theta_list[i]), np.array(theta_list[j]))
+        # print(dic)
+        # min_value = 10e8
+        # for key, value in dic.items():
+        #     if value < min_value and value != 0:
+        #         min_value = value
+        #         best_key = key
+        # start, end = best_key[1], best_key[0]
         x1, y1 = x_y[start][0], x_y[start][1]
         x2, y2 = x_y[end][0], x_y[end][1]
 
@@ -84,7 +107,7 @@ class boxes():
         for order in range(len(x1)):
             xx, yy = [], []
             for i in range(60, 160): # (60, 90)
-                x, y = third_point((x1[order], y1[order]), (x2[order], y2[order]), 180 - self.start * self.step + 2 * i) # 115 - 50
+                x, y = third_point((x1[order], y1[order]), (x2[order], y2[order]), 240 - self.start * self.step + 2 * i) # 115 - 50
                 if x < img.shape[0] and y < img.shape[1]:
                     xx.append(x)  # row
                     yy.append(y)  # col
@@ -120,6 +143,10 @@ class boxes():
         plt.imshow(img)
         plt.show()
 
+def diff(array1,array2):
+    result = np.sqrt(np.sum((array1 - array2) ** 2))
+    return result
+
 def identify_stick(img, detect_len, center):
     x = []
     y = []
@@ -128,33 +155,47 @@ def identify_stick(img, detect_len, center):
         x.append(int(center[0] + detect_len*cos(theta/180*pi)))
         y.append(int(center[1] + detect_len*sin(theta/180*pi)))
         bgr_array[theta,:] = np.array(img[x[theta], y[theta]])
-    gray = np.mean(bgr_array, 1)
+    gray = bgr_array[:,0] # np.mean(bgr_array, 1)
     # plt.scatter(list(range(360)),gray),plt.plot(gray),plt.title('gray_360'),plt.show()
     theta = []
-    threhold_relative, threhold_dis = 0.4, 10
+    threhold_relative, threhold_dis = 0.42, 8
     for i in range(1,len(gray)-1):
-        if gray[i] < (gray[i-1] + gray[i+1]) * threhold_relative: # and gray[i] < 70: # add 70 edge!!!
+        if gray[i] < (gray[i-1] + gray[i+1]) * threhold_relative and gray[i] < 160: # add 70 edge!!!
             theta.append(i)
     print('theta:',theta)
     print('length of theta:',len(theta)) 
-    # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
-    delete_list = []
+    plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     if len(theta) <= 1:
         print('No valley is found')
         return [0], [0], 0
-    for index,item in enumerate(theta):
-        if abs(item - theta[index+1]) < threhold_dis:
-            # delete_list.append(item)
-            if min(item,theta[index+1]) not in delete_list:
-                delete_list.append(min(item,theta[index+1]))
-            else:
-                delete_list.append(theta[index+1])
-        if index >= len(theta)-2:
+    new_theta = [[] for i in range(len(theta))]
+    j = 0
+    new_theta[j].append(theta[0])
+    for index in range(len(theta) - 1):
+        if abs(theta[index] - theta[index+1]) <= 9:
+            new_theta[j].append(theta[index+1])
+        else:
+            # print('i am here')
+            j += 1
+            new_theta[j].append(theta[index+1])
+    print('new_theta:',new_theta)
+    theta = []
+    for lst in new_theta:
+        if lst == []:
             break
-    
-    for i in delete_list:
-        theta.remove(i)
-    # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
+        pos = np.where(gray == np.min(gray[lst]))
+        if pos[0].shape[0] >= 2:
+            for item in list(pos[0]):
+                if item in lst:
+                    pos = item
+                    break
+        else:
+            pos = int(pos[0])
+        theta.append(pos)
+
+    print('new theta:',theta)
+    print('length of new theta:',len(theta)) 
+    plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     stick_x = [int(center[0] + detect_len*cos(i/180*pi)) for i in theta]
     stick_y = [int(center[1] + detect_len*sin(i/180*pi)) for i in theta]
     return stick_x, stick_y, theta
