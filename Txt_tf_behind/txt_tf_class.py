@@ -5,14 +5,16 @@ import socket
 import sys
 import os
 import time
-#RPi's IP
+
+# RPi's IP 
 SERVER_IP = "192.168.43.207"
 SERVER_PORT = 8888
 lsta = [str(20) for i in range(24)]
 green, yellow = 0, 0
 yellow_lst = [str(20) for i in range(12)]
-green_lst = [str(20) for i in range(12)]
+white_lst = [str(20) for i in range(12)]
 
+# {0 : white, 1 : flower}
 class data_tf_gui():
     def __init__(self):
         pass
@@ -20,7 +22,7 @@ class data_tf_gui():
     def readfile(self):
         while(True):
             try:
-                f = open(r"/Users/fanghao_w/Desktop/vs_py_project/cpp接口/2.jpg.txt", "r") 
+                f = open(r"/Users/fanghao_w/Desktop/vs_py_project/cpp接口/3.jpg.txt", "r") 
                 time.sleep(0.5)
                 break
             except:
@@ -32,6 +34,7 @@ class data_tf_gui():
         obj_num = int(text[0])
         text.pop(-1)
         text.pop(0)
+        text.pop(-1)
 
         # print(text)
         data = np.zeros((len(text), 4))
@@ -107,21 +110,21 @@ def main():
         if '0' in leaf_class:
             yellow_lst[i] = 0
         if '1' in leaf_class:
-            pass
+            white_lst[i] = 0
         for j, name in enumerate(leaf_class):
             if name == '0':
                 yellow_lst[i] += 1
             if name == '1':
-                pass
-        print('#####',yellow_lst)
+                white_lst[i] += 1
+        print('Yellow leafs and white flowers:', yellow_lst, white_lst)
         strange_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         for index, order in enumerate(strange_order):
-            # lsta[(order1 + 1) * 2 - 1] = green_lst[index]
             global lsta
             lsta[(order + 1) * 2 - 2] = yellow_lst[index]
+            lsta[(order + 1) * 2 - 1] = white_lst[index]
 
         print('send data:', lsta)
-        tf.transport()
+        # tf.transport()
     
 
 if __name__ == '__main__':
