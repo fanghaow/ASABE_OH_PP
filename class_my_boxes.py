@@ -17,14 +17,13 @@ class boxes():
         self.num_stick = 8 # default
         self.step = 4
         self.img = cv2.imread(self.path)
-        pass
 
     def visual_stick(self):
         img = cv2.imread(self.path)
         center = self.center
         step = 4 #######
         circle_len = list(range(50, 90, step))
-        # 滤除杂波，确定茎干数目
+        # Filter out clutter and determine the number of stems
         x_y = []
         theta_list = []
         for i in range(len(circle_len)):
@@ -39,7 +38,7 @@ class boxes():
                 max_num = stick_result.count(i)
                 num_stick = i
         print('The number of sticks is: ', num_stick)
-        # formula1 : 求取最长的线段
+        # formula1 : Find the longest line segment
         b = stick_result.count(num_stick)
         c = -1
         for i in range(b):
@@ -51,13 +50,13 @@ class boxes():
         index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
         for i in range(len(index_theta) - 2):
             difference = diff(np.array(theta_list[start]), np.array(theta_list[end]))
-            if difference <= 40: # 40 : 内外圈茎干角度差异阈值
+            if difference <= 40: # 40 : Outer and inside ring stem angle difference threshold
                 break
             else:
                 end = index_theta[-i-2]
         if difference > 40:
             end = index_theta[-1]
-        # formula2 : 求取最相似的角度
+        # formula2 : Find the most similar angle
         # index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
         # dic = {}
         # for i in index_theta:
@@ -101,7 +100,7 @@ class boxes():
         (x1, y1) = start_list
         (x2, y2) = end_list
         img = cv2.imread(self.path)  # (480, 520, 3) col, row, channel
-        img = cv2.GaussianBlur(img, (5, 5), cv2.BORDER_DEFAULT) # 高斯滤波
+        img = cv2.GaussianBlur(img, (5, 5), cv2.BORDER_DEFAULT) # Gaussian filter
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         result = []
         for order in range(len(x1)):
@@ -122,7 +121,7 @@ class boxes():
             # plt.plot(xx)
         plt.show()
         result_rate = [i / max(result) for i in result]
-        plt.plot(result), plt.title('result')
+        plt.plot(result), plt.title('Result')
         white_index = []
         for index,item in enumerate(result):
             if item > 100 and result_rate[index] > 0.75: # 105 : light_threhold, 0.78 : rate_threhold
@@ -143,7 +142,7 @@ class boxes():
                 x_c1, y_c1 = third_point((x1[i], y1[i]), (x2[i], y2[i]), 120) # 380
                 x_c2, y_c2 = third_point((x1[j], y1[j]), (x2[j], y2[j]), 120) # 380
                 dist_dict[(i, j)] = diff(np.array([x_c1, y_c1]), np.array([x_c2, y_c2]))
-        print('距离字典：',dist_dict)
+        print('Distance dictionary : ',dist_dict)
         threhold_value = 60
         key_rm, fate_white_index = [], []
         for key,value in dist_dict.items():
@@ -214,8 +213,6 @@ def identify_stick(img, detect_len, center):
             pos = int(pos[0])
         theta.append(pos)
 
-    print('new theta:',theta)
-    print('length of new theta:',len(theta)) 
     # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     stick_x = [int(center[0] + detect_len*cos(i/180*pi)) for i in theta]
     stick_y = [int(center[1] + detect_len*sin(i/180*pi)) for i in theta]
@@ -238,9 +235,12 @@ def draw_box(img, left_top, right_down, color = 'r'):
     return img
 
 def main():
-    for i in range(5,120):
+    rand_list = np.random.choice(120, 12, False)
+    print('My random list : ',rand_list)
+    time.sleep(5)
+    for index,item in enumerate(rand_list): # range(5,120)
         t_start = time.time()
-        my_box = boxes(path = 'standard_competition/IMAGE_JPEG/' + str(10001+i) + '.jpg')
+        my_box = boxes(path = 'standard_competition/IMAGE_JPEG/' + str(10005+index) + '.jpg')
         (x1,y1), (x2,y2) = my_box.visual_stick()
         white_index = my_box.classification((x1,y1), (x2,y2))
         my_box.visual_result((x1,y1), (x2,y2), white_index)
