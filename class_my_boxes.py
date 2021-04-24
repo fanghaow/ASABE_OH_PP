@@ -9,10 +9,10 @@ import os
 import sys
 
 class boxes():
-    def __init__(self, path = 'standard_competition/randomimg/10008.jpg',center = (480,480) ,threhold_relative = 0.45 ,threhold_dis = 10):
-        self.path = path
+    def __init__(self, path = 'standard_competition/randomimg/10008.jpg',center = (260, 260) ,threhold_relative = 0.45 ,threhold_dis = 10):
+        self.path = path 
         self.detect_len = 90
-        self.center = center
+        self.center = center # (480,480)
         self.threhold_relative, self.threhold_dis = threhold_relative, threhold_dis
         self.num_stick = 8 # default
         self.step = 4
@@ -51,11 +51,11 @@ class boxes():
         index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
         for i in range(len(index_theta) - 2):
             difference = diff(np.array(theta_list[start]), np.array(theta_list[end]))
-            if difference <= 30:
+            if difference <= 40: # 40 : 内外圈茎干角度差异阈值
                 break
             else:
                 end = index_theta[-i-2]
-        if difference > 20:
+        if difference > 40:
             end = index_theta[-1]
         # formula2 : 求取最相似的角度
         # index_theta = [index for index,item in enumerate(theta_list) if len(item) == num_stick]
@@ -106,8 +106,8 @@ class boxes():
         result = []
         for order in range(len(x1)):
             xx, yy = [], []
-            for i in range(60, 160): # (60, 90)
-                x, y = third_point((x1[order], y1[order]), (x2[order], y2[order]), 240 - self.start * self.step + 2 * i) # 115 - 50
+            for i in range(60, 90): # (60, 160)
+                x, y = third_point((x1[order], y1[order]), (x2[order], y2[order]), 115 - 50 - self.start * self.step + i) # 180 2 * i
                 if x < img.shape[0] and y < img.shape[1]:
                     xx.append(x)  # row
                     yy.append(y)  # col
@@ -135,11 +135,32 @@ class boxes():
         (x1, y1) = start_list
         (x2, y2) = end_list
         img = cv2.imread(self.path)  # (480, 520, 3) col, row, channel
+        ################################
+        # TO DO: set a threhold for removing boxes which are too close!
+        dist_dict = {}
+        for i in white_index:
+            for j in white_index:
+                x_c1, y_c1 = third_point((x1[i], y1[i]), (x2[i], y2[i]), 120) # 380
+                x_c2, y_c2 = third_point((x1[j], y1[j]), (x2[j], y2[j]), 120) # 380
+                dist_dict[(i, j)] = diff(np.array([x_c1, y_c1]), np.array([x_c2, y_c2]))
+        print('距离字典：',dist_dict)
+        threhold_value = 60
+        key_rm, fate_white_index = [], []
+        for key,value in dist_dict.items():
+            if value < threhold_value and value != 0 and key[0] not in key_rm:
+                white_index.remove(key[0])
+                fate_white_index.append(key[0])
+                key_rm.append(key[0]); key_rm.append(key[1])
+        for order in fate_white_index:
+            x_leave, y_leave = third_point((x1[order], y1[order]), (x2[order], y2[order]), 120) # 380
+            box_len = 20 # 50
+            draw_box(img, (y_leave - box_len, x_leave - box_len), (y_leave + box_len, x_leave + box_len), color = 'r')
+        ################################
         print(white_index)
         for order in white_index:
-            x_leave, y_leave = third_point((x1[order], y1[order]), (x2[order], y2[order]), 400) # 120
-            box_len = 50 # 15
-            draw_box(img, (y_leave - box_len, x_leave - box_len), (y_leave + box_len, x_leave + box_len))
+            x_leave, y_leave = third_point((x1[order], y1[order]), (x2[order], y2[order]), 120) # 380
+            box_len = 20 # 50
+            draw_box(img, (y_leave - box_len, x_leave - box_len), (y_leave + box_len, x_leave + box_len),  color = 'g')
         plt.imshow(img)
         plt.show()
 
@@ -164,7 +185,7 @@ def identify_stick(img, detect_len, center):
             theta.append(i)
     print('theta:',theta)
     print('length of theta:',len(theta)) 
-    plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
+    # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     if len(theta) <= 1:
         print('No valley is found')
         return [0], [0], 0
@@ -195,7 +216,7 @@ def identify_stick(img, detect_len, center):
 
     print('new theta:',theta)
     print('length of new theta:',len(theta)) 
-    plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
+    # plt.scatter(theta, gray[theta]),plt.plot(gray),plt.show()
     stick_x = [int(center[0] + detect_len*cos(i/180*pi)) for i in theta]
     stick_y = [int(center[1] + detect_len*sin(i/180*pi)) for i in theta]
     return stick_x, stick_y, theta
@@ -207,33 +228,25 @@ def third_point(start_p, end_p, distance):
     y_new = (y2 - y1) * distance / sqrt((x2-x1)**2 + (y2-y1)**2) + y1
     return int(x_new), int(y_new)
 
-def draw_box(img, left_top, right_down):
+def draw_box(img, left_top, right_down, color = 'r'):
     (left,top) = left_top
     (right,down) = right_down
-    img = cv2.rectangle(img,(left,top),(right,down),(0,0,255),3)
+    if color == 'r':
+        img = cv2.rectangle(img,(left,top),(right,down),(255,0,0),3)
+    else:
+        img = cv2.rectangle(img,(left,top),(right,down),(0,255,0),3)
     return img
 
 def main():
-    # for i in range(120):
-    #     t_start = time.time()
-    #     my_box = boxes(path = 'IMAGE_JPEG/' + str(10001+i) + '.jpg')
-    #     (x1,y1), (x2,y2) = my_box.visual_stick()
-    #     white_index = my_box.classification((x1,y1), (x2,y2))
-    #     my_box.visual_result((x1,y1), (x2,y2), white_index)
-    #     # my_box.all_box((x1,y1), (x2,y2))
-    #     t_end = time.time()
-    #     print('It takes me %f seconds to draw'%(t_end - t_start))
-    
-    for i in range(12):
+    for i in range(5,120):
         t_start = time.time()
-        my_box = boxes(path = 'standard_competition/randomimg/' +str(10008+i) + '.jpg')
+        my_box = boxes(path = 'standard_competition/IMAGE_JPEG/' + str(10001+i) + '.jpg')
         (x1,y1), (x2,y2) = my_box.visual_stick()
-        if x1 == [0] and x2 == [0]:
-            continue
         white_index = my_box.classification((x1,y1), (x2,y2))
         my_box.visual_result((x1,y1), (x2,y2), white_index)
         # my_box.all_box((x1,y1), (x2,y2))
         t_end = time.time()
+        print('It takes me %f seconds to draw'%(t_end - t_start))
 
 if __name__ == '__main__':
     main()
