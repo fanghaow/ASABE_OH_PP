@@ -1,9 +1,9 @@
-# ASABE competition projects
+# <center>ASABE competition projects</center>
 ---
-## My coeifficients:
-|  class   | boxes  |
-|  ----  | ----  |
-| threhold_relative  | 寻求突变点阈值 |
-| threhold_dis  | 滤除360向量相邻节点阈值 |
-| threhold_value | 框距阈值 |
+## My parameter for debugging:
+|  parameter   | description  |
+|:-: | :-: |
+| threhold_relative  | A threhold for finding the discontinue points |
+| threhold_dis  | A threhold for removing the repeated point on one stem |
+| threhold_value | A threhold for removing the repeated boxes |
   
