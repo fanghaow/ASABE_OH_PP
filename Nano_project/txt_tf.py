@@ -6,6 +6,9 @@ import sys
 import os
 import time
 import shutil
+import math
+import serial
+ser = serial.Serial("/dev/ttyTHS1", 9600, timeout=0)
 #RPi's IP
 SERVER_IP = "192.168.43.207" # zyf : 192.168.43.122
 SERVER_PORT = 8888
@@ -14,11 +17,7 @@ green, yellow = 0, 0
 yellow_lst = [str(20) for i in range(12)]
 white_lst = [str(20) for i in range(12)]
 order = 1
-try:
-    shutil.rmtree('home/dlinano/tensorrtx-master/yolov5/build/results')
-    os.mkdir('home/dlinano/tensorrtx-master/yolov5/build/results')
-except:
-    pass
+
 class data_tf_gui():
     def __init__(self):
         pass
@@ -121,6 +120,7 @@ def main():
         if num == 0:
             yellow_lst[i] = 0
             white_lst[i] = 0
+            ser.write(('Start:' + '0' + '!').encode())
         else:
             print('%%%%%%',leaf_class)
             yellow_lst[i] = 0
@@ -136,15 +136,28 @@ def main():
                     white_lst[i] += 1
             print('#####',yellow_lst)
             print('$$$$$',white_lst)
+            lsita = []
+            lsita.append(num)
+            for i in range(num):    
+                xi = (data[i][0] + data[i][2]) / 2
+                yi = (data[i][1] + data[i][3]) / 2
+                length = math.sqrt((xi - 540)**2 + (yi - 540)**2)
+                sita = int(math.acos((yi - 540) * (1) / length) / 3.1415926 * 180)
+                if xi > 540:
+                   sita = 360 - sita
+                print(sita)
+                lsita.append(sita)
+            print(lsita)
+            ser.write(('Start:' + str(lsita)[1:-1] + '!').encode())
         strange_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         for index, order1 in enumerate(strange_order):
             lsta[(order1 + 1) * 2 - 2] = white_lst[index]
             lsta[(order1 + 1) * 2 - 1] = yellow_lst[index]
 
         print('send data:', lsta)
-        time.sleep(1000)
+        #time.sleep(1000)
         #tf.transport()
-        os.remove("/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(i+1) +".jpg.txt")
+
 if __name__ == '__main__':
     main()
     print('success!')

@@ -7,10 +7,10 @@
 #include "utils.h"
 #include "calibrator.h"
 
-#define USE_FP32  // set USE_INT8 or USE_FP16 or USE_FP32
+#define USE_FP16  // set USE_INT8 or USE_FP16 or USE_FP32
 #define DEVICE 0  // GPU id
 #define NMS_THRESH 0.4
-#define CONF_THRESH 0.5
+#define CONF_THRESH 0.4
 #define BATCH_SIZE 1
 
 // stuff we know about the network and the input/output blobs
