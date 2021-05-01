@@ -29,7 +29,7 @@ class data_tf_gui():
         global order
         while(1):
             try:
-                f = open(r"/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(order) +".jpg.txt", "r") 
+                f = open(r"/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(order) + ".jpg.txt", "r")
                 time.sleep(0.5)
                 text = f.readlines()
                 if 'Done' not in text[-1]:
@@ -68,10 +68,10 @@ class data_tf_gui():
             for j, str_num in enumerate(str_list):
                 data[index][j] = int(str_num)
         #
-        print('filename:',imgfile)
-        print('obj_num:',obj_num)
-        print('data:\n',data)
-        print('class_name:',class_name)
+        print('filename:', imgfile)
+        print('obj_num:', obj_num)
+        print('data:\n', data)
+        print('class_name:', class_name)
         return obj_num, data, class_name
 
     def transport(self):
@@ -124,7 +124,7 @@ def main():
             yellow_lst[i] = 0
             white_lst[i] = 0
         else:
-            print('%%%%%%',leaf_class)
+            print('%%%%%%', leaf_class)
             yellow_lst[i] = 0
             white_lst[i] = 0
             if '0' in leaf_class:
@@ -148,7 +148,7 @@ def main():
         tf.transport()
         # rm img file we produced
         try:
-            os.remove("/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(i+1) +".jpg.txt")
+            os.remove("/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(i+1) + ".jpg.txt")
         except:
             pass
         finally:
