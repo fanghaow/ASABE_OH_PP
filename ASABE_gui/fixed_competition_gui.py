@@ -18,7 +18,7 @@ import math
 NAME_IP_LIST = []
 #Change the names and IP addresses of your robots in the list.
 #They will be populated in the drop down manual
-NAME_IP_LIST.append(['robot1','192.168.43.207'])
+NAME_IP_LIST.append(['robot1','192.168.123.164'])
 # NAME_IP_LIST.append(['robot1','192.168.0.2'])
 NAME_IP_LIST.append(['robot2','192.168.0.3'])
 # SERVER_IP = '192.168.0.1'
@@ -31,7 +31,7 @@ import socket
 import time
 import sys
 #define host ip: Rpi's IP
-HOST_IP = "192.168.43.207"  # fanghao_w ubuntu IP
+HOST_IP = "192.168.123.164"  # fanghao_w ubuntu IP:192.168.43.207
 HOST_PORT = 8888
 print("Starting socket: TCP...")
 #1.create socket object:socket=socket.socket(family,type)
@@ -462,7 +462,8 @@ class Ui_MainWindow(object):
                 transport()
                 lstk.append(lst)
                 k += 1
-                if k > 12:
+                if k > 120:
+                    print('i break!!')
                     break
                 result = [int(i) for i in lst[0].split('/')]
                 print('result:',result)
