@@ -25,9 +25,9 @@ import shutil
 SERVER_IP = "192.168.43.122"
 SERVER_PORT = 8888
 lsta = [str(20) for i in range(24)]
-green, yellow = 0, 0
+white, yellow = 0, 0
 yellow_lst = [str(20) for i in range(12)]
-green_lst = [str(20) for i in range(12)]
+white_lst = [str(20) for i in range(12)]
 
 def detect(save_img=False):
     try:
@@ -172,27 +172,27 @@ def detect(save_img=False):
                 label_str = f'{s}'  ##
                 str_l = label_str.split(' ')
                 print(str_l)
-                global green, yellow
-                green, yellow = 20, 0
+                global white, yellow
+                white, yellow = 0, 0
                 # print(str_l)
                 if len(str_l) == 2:
                     pass
                 elif len(str_l) == 4:
-                    if 'greens,' or 'green,' in str_l:
-                        green = str_l[1]
                     if 'whites,' or 'white,' in str_l:
+                        white = str_l[1]
+                    if 'yellows,' or 'yellow,' in str_l:
                         yellow = str_l[1]
                 elif len(str_l) == 6:
-                    green = str_l[1]
+                    white = str_l[1]
                     yellow = str_l[3]
                 yellow_lst[order] = yellow
-                green_lst[order] = green
-                print('g and w quantity:', green, yellow)
+                white_lst[order] = white
+                print('g and w quantity:', white, yellow)
                 #
                 strange_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                 for index, order1 in enumerate(strange_order):
-                    # lsta[(order1 + 1) * 2 - 2] = green_lst[index]
-                    lsta[(order1 + 1) * 2 - 1] = yellow_lst[index]
+                    lsta[(order1 + 1) * 2 - 1] = white_lst[index]
+                    lsta[(order1 + 1) * 2 - 2] = yellow_lst[index]
 
                 print('send data:', lsta)
                 #

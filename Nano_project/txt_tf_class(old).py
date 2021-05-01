@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding:utf-8
+# This file is used to tf information that only support yellow leaves!
 import numpy as np
 import socket
 import sys
