@@ -23,16 +23,21 @@ Servo arm1;
 Servo arm2;
 Servo push;
 
-#define armoneup 85
+#define armoneup 89 //85
+#define armonepos 77
 #define armonedown 112
-#define armtwoup 120
-#define armtwodown 135
-#define stretchout 160
+#define armtwoup 115 //120
+#define armtwopos 123
+#define armtwodown 80
+#define stretchout 130
 #define stretchin 0
 
 int t = 1;
 String comdata = "";
 String com = "";
+int n = 0;
+int c[10] = {0};
+int sita = 0;
 
 void setup() {
   pinMode(DIR1, OUTPUT);
@@ -100,16 +105,29 @@ void Downhands()
   arm2.detach();
 }
 
+void PointPose()
+{
+  arm1.attach(ARM1);
+  arm2.attach(ARM2);
+  
+  arm1.write(armonepos);
+  arm2.write(armtwopos);
+  delay(500);
+//  arm1.detach();
+  arm2.detach();
+}
+
 void swirl(int Step)
 {
   digitalWrite(EN3, HIGH);
-  digitalWrite(DIR3, HIGH);
+  digitalWrite(DIR3, LOW);
   for (int i = 0; i < Step; i++)
   {
     digitalWrite(STP3, HIGH);
     delayMicroseconds(SWR);
     digitalWrite(STP3, LOW);
     delayMicroseconds(SWR);
+    sita++;
   }
 }
 
@@ -118,7 +136,7 @@ void CheckBase()
   t = digitalRead(BASE);
 }
 
-void point()
+void Point()
 {
   push.attach(PUSH);
   for (int i = stretchin; i < stretchout; i++)
@@ -126,20 +144,23 @@ void point()
     push.write(i);
     delay(5);
   }
+  for (int i = stretchout; i > stretchin; i--)
+  {
+    push.write(i);
+    delay(2);
+  }
   push.detach();
 }
 
 void Rec()
 {
-  int i = 0;
-  int j = 0;
-  int con = 0;
+  c[10] = {0};
   while(1)
   {
-    // read data from serial port
-    con = 0;
-    i = 0;
-    j = 0;
+   // read data from serial port
+    int con = 0;
+    int i = 0;
+    int j = 0;
     comdata = "";
     com = "";
     while(Serial1.available())
@@ -150,11 +171,11 @@ void Rec()
     }
     if (comdata != "")
     {
-      for (i = 0; i < 100; i++)
+      for (i = 0; i < con; i++)
       {
         if (comdata[i] == ':')
         {
-          for (j = i + 1; j < 100; j++)
+          for (j = i + 1; j < con; j++)
           {
             if (comdata[j] == '!') break;
             com += comdata[j];
@@ -162,41 +183,122 @@ void Rec()
           break;
         }
       }
-      Serial1.print("Serial.readString:");
-      Serial1.println(com);
-      Serial1.println(j - i - 1);
+//      Serial1.print("Serial.readString:");
+//      Serial1.println(com);
+//      Serial1.println(j - i - 1);
       Serial.print("Serial.readString:");
       Serial.println(com);
-//    Serial.println(j - i - 1);
+//      Serial.println(j - i - 1);
+      String str = "09";
+      n = com[0] - str[0];
+      int k = 0;
+//      c[10] = {0};
+      int m = 1;
+      while(k < n)
+      {
+        int s = 0;
+        while (com[m] >= str[0] && com[m] <= str[1])
+        {
+          s = s * 10 + (com[m] - str[0]);
+          m++;
+        }
+        if (s != 0)
+        {
+          c[k] = s;
+          k++;
+        }
+        m++;
+      }
+      for (int i = 0; i < n; i++)
+      {
+        Serial.print(c[i]);
+        Serial.print("   ");
+      }
+      break;
     }
     while(Serial1.read()>= 0){} //clear serialbuffer
+  }
+}
+
+void sort()
+{
+  int temp = 0;
+  for (int i = 0; i < n; i++)
+  {
+    for (int j = i + 1; j < n; j++)
+    {
+      if (c[j] < c[i])
+      {
+        temp = c[j];
+        c[j] = c[i];
+        c[i] = temp;
+      }
+    }
+  }
+}
+
+void Acture()
+{
+  int flag = 0;
+  for (int i = 0; i < n; i++)
+  {
+    if (flag == 0)
+    {
+      flag = 1;
+      swirl(int(c[i] * 8.889));
+      Point();
+    }
+    else
+    {
+      swirl(int((c[i] - c[i - 1]) * 8.889));
+      Point();
+    }
+    
+  }
+}
+
+void setback()
+{
+  digitalWrite(EN3, HIGH);
+  digitalWrite(DIR3, HIGH);
+  for (int i = sita; i > 0; i--)
+  {
+    digitalWrite(STP3, HIGH);
+    delayMicroseconds(SWR);
+    digitalWrite(STP3, LOW);
+    delayMicroseconds(SWR);
+    sita--;
   }
 }
 
 //-----------------------------------------------------------------------
 
 void loop() {
-
   Serial1.println("1");
   Uphands();
   delay(1000);
-
-  while(1)
+  int count = 0;
+  while(count < 12)
   {
     GoAhead(1);
     CheckBase();
     if (t == 0)
     {
-      GoAhead(10);
+      GoAhead(2);
       CheckBase();
       if (t == 0)
       { 
-        delay(500);
+        delay(1000);
         Serial1.println("1");
+        delay(500);
+        PointPose();
+        Rec();
+        sort();
+        Acture();
+        setback();
+        Uphands();
         
-
-
-        
+        count++;
         GoAhead(2000);
       }
     }
