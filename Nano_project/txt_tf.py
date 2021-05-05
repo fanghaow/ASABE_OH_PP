@@ -18,23 +18,27 @@ yellow_lst = [str(20) for i in range(12)]
 white_lst = [str(20) for i in range(12)]
 order = 1
 
+shutil.rmtree('/home/dlinano/tensorrtx-master/yolov5/build/results')
+os.mkdir('/home/dlinano/tensorrtx-master/yolov5/build/results')
+
 class data_tf_gui():
     def __init__(self):
         pass
 
     def readfile(self):
         global order
+        print('scaning...')
         while(True):
             try:
-                f = open(r"/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(order) + ".jpg.txt", "r")
-                time.sleep(0.5)
+                f = open(r"/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(order) +".jpg.txt", "r") 
+                time.sleep(0.01)
                 text = f.readlines()
                 if 'Done' not in text[-1]:
                     continue
                 order += 1
                 break
             except:
-                print('No txt found')
+                pass
         print(text)
         text.pop(-1)
         # print(text)
@@ -62,19 +66,19 @@ class data_tf_gui():
                 else:
                     str_list[i] = item[1:]
 
-            for j, str_num in enumerate(str_list):
+            for j,str_num in enumerate(str_list):
                 data[index][j] = int(str_num)
         #
-        print('filename:', imgfile)
-        print('obj_num:', obj_num)
-        print('data:\n', data)
-        print('class_name:', class_name)
+        print('filename:',imgfile)
+        print('obj_num:',obj_num)
+        print('data:\n',data)
+        print('class_name:',class_name)
         return obj_num, data, class_name
 
     def transport(self):
         global lsta
         str_lsta = ''
-        for index, item in enumerate(lsta):
+        for index,item in enumerate(lsta):
             str_lsta += str(item)
             if index <= 22:
                 str_lsta += '/'
@@ -97,7 +101,7 @@ class data_tf_gui():
         while True:
             try:
                 data = socket_tcp.recv(512)
-                if len(data) > 0:
+                if len(data)>0:
                     print("Received: %s" % data.decode())
                     #command=input()
                     command = str_lsta
@@ -106,23 +110,23 @@ class data_tf_gui():
                     i += 1
                     if i > 0:
                         break
-                    # continue
+                    #continue
             except Exception:
                 socket_tcp.close()
-                socket_tcp = None
+                socket_tcp=None
                 sys.exit(1)
 
 def main():
     global lsta
     tf = data_tf_gui()
     for i in range(12):
-        num, data, leaf_class = tf.readfile()
+        num, data, leaf_class  = tf.readfile()
         if num == 0:
             yellow_lst[i] = 0
             white_lst[i] = 0
             ser.write(('Start:' + '0' + '!').encode())
         else:
-            print('%%%%%%', leaf_class)
+            print('%%%%%%',leaf_class)
             yellow_lst[i] = 0
             white_lst[i] = 0
             if '0' in leaf_class:
@@ -130,24 +134,28 @@ def main():
             if '1' in leaf_class:
                 white_lst[i] = 0
             for j, name in enumerate(leaf_class):
-                if name == '0':
-                    yellow_lst[i] += 1
                 if name == '1':
+                    yellow_lst[i] += 1
+                if name == '0':
                     white_lst[i] += 1
-            print('#####', yellow_lst)
-            print('$$$$$', white_lst)
+            print('#####',yellow_lst)
+            print('$$$$$',white_lst)
             lsita = []
             lsita.append(num)
             for i in range(num):    
                 xi = (data[i][0] + data[i][2]) / 2
                 yi = (data[i][1] + data[i][3]) / 2
                 length = math.sqrt((xi - 540)**2 + (yi - 540)**2)
-                sita = int(math.acos((yi - 540) * (1) / length) / 3.1415926 * 180)
+                sita = int(math.acos((yi - 540) * (1) / length) / 3.14159 * 180)
                 if xi > 540:
                    sita = 360 - sita
                 print(sita)
                 lsita.append(sita)
-            print(lsita)
+                if leaf_class[i] == '0':
+                    lsita.append('a')
+                elif leaf_class[i] == '1':
+                    lsita.append('b')
+            print(str(lsita))
             ser.write(('Start:' + str(lsita)[1:-1] + '!').encode())
         strange_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         for index, order1 in enumerate(strange_order):
@@ -157,7 +165,7 @@ def main():
         print('send data:', lsta)
         #time.sleep(1000)
         #tf.transport()
-
+        #os.remove("/home/dlinano/tensorrtx-master/yolov5/build/results/" + str(i+1) +".jpg.txt")
 if __name__ == '__main__':
     main()
     print('success!')

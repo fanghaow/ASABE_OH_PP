@@ -14,29 +14,37 @@
 #define ARM2 2
 #define PUSH 3
 
-#define BASE A11
+#define BASE 9
 
 #define SPD 100
-#define SWR 600
+#define SWR 300
 
 Servo arm1;
 Servo arm2;
 Servo push;
 
-#define armoneup 89 //85
-#define armonepos 77
-#define armonedown 112
-#define armtwoup 115 //120
-#define armtwopos 123
+#define armoneup 89 //watchpos
+#define armonepos 79
+#define armonedown 156
+#define armtwoup 118 //watchpos
+#define armtwopos 122
 #define armtwodown 80
-#define stretchout 130
+#define stretchleaf 130
+#define stretchflower 80
 #define stretchin 0
+
+class DATA
+{
+  public:
+  int sita = 0;
+  char kind = 'c';
+};
 
 int t = 1;
 String comdata = "";
 String com = "";
 int n = 0;
-int c[10] = {0};
+DATA c[10];
 int sita = 0;
 
 void setup() {
@@ -58,11 +66,7 @@ void setup() {
   Serial1.begin(9600);
   Serial.begin(9600);
   while(Serial1.read()>= 0){} //clear serialbuffer
-
-//  arm2.attach(ARM2);
-//  push.attach(PUSH);
-//  arm2.write(armtwodown);
-//  push.write(0);
+  
 }
 
 void GoAhead(int Step)//向前
@@ -86,10 +90,18 @@ void Uphands()
 {
   arm1.attach(ARM1);
   arm2.attach(ARM2);
-  
-  arm1.write(armoneup);
-  arm2.write(armtwoup);
-  delay(500);
+  int i, j = 0;
+  for (i = armonedown, j = armtwodown; i > armoneup, j < armtwoup; i--, j++)
+  {
+    arm1.write(i);
+    arm2.write(j);
+    delay(20);
+  }
+  for (i = armonedown - (armtwoup - armtwodown); i > armoneup; i--)
+  {
+    arm1.write(i);
+    delay(20);
+  }
 //  arm1.detach();
   arm2.detach();
 }
@@ -110,9 +122,39 @@ void PointPose()
   arm1.attach(ARM1);
   arm2.attach(ARM2);
   
-  arm1.write(armonepos);
-  arm2.write(armtwopos);
-  delay(500);
+  int i, j = 0;
+  for (i = armoneup, j = armtwoup; i > armonepos, j < armtwopos; i--, j++)
+  {
+    arm1.write(i);
+    arm2.write(j);
+    delay(20);
+  }
+  for (i = armoneup - (armtwopos - armtwoup); i > armonepos; i--)
+  {
+    arm1.write(i);
+    delay(20);
+  }
+//  arm1.detach();
+  arm2.detach();
+}
+
+void WatchPose()
+{
+  arm1.attach(ARM1);
+  arm2.attach(ARM2);
+  
+  int i, j = 0;
+  for (i = armonepos, j = armtwopos; i < armoneup, j > armtwoup; i++, j--)
+  {
+    arm1.write(i);
+    arm2.write(j);
+    delay(20);
+  }
+  for (i = armonepos + (armtwopos - armtwoup); i < armoneup; i++)
+  {
+    arm1.write(i);
+    delay(20);
+  }
 //  arm1.detach();
   arm2.detach();
 }
@@ -136,15 +178,31 @@ void CheckBase()
   t = digitalRead(BASE);
 }
 
-void Point()
+void PointLeaf()
 {
   push.attach(PUSH);
-  for (int i = stretchin; i < stretchout; i++)
+  for (int i = stretchin; i < stretchleaf; i++)
   {
     push.write(i);
     delay(5);
   }
-  for (int i = stretchout; i > stretchin; i--)
+  for (int i = stretchleaf; i > stretchin; i--)
+  {
+    push.write(i);
+    delay(2);
+  }
+  push.detach();
+}
+
+void PointFlower()
+{
+  push.attach(PUSH);
+  for (int i = stretchin; i < stretchflower; i++)
+  {
+    push.write(i);
+    delay(5);
+  }
+  for (int i = stretchflower; i > stretchin; i--)
   {
     push.write(i);
     delay(2);
@@ -154,7 +212,6 @@ void Point()
 
 void Rec()
 {
-  c[10] = {0};
   while(1)
   {
    // read data from serial port
@@ -183,16 +240,16 @@ void Rec()
           break;
         }
       }
+      Serial.println(com);
 //      Serial1.print("Serial.readString:");
 //      Serial1.println(com);
 //      Serial1.println(j - i - 1);
-      Serial.print("Serial.readString:");
-      Serial.println(com);
+//      Serial.print("Serial.readString:");
+//      Serial.println(com);
 //      Serial.println(j - i - 1);
       String str = "09";
       n = com[0] - str[0];
       int k = 0;
-//      c[10] = {0};
       int m = 1;
       while(k < n)
       {
@@ -204,16 +261,27 @@ void Rec()
         }
         if (s != 0)
         {
-          c[k] = s;
+          c[k].sita = s;
+          while (1)
+          {
+            if (com[m] == 'a' || com[m] == 'b')
+            {
+              c[k].kind = com[m];
+              break;
+            }
+            m++;
+          }
           k++;
         }
         m++;
       }
       for (int i = 0; i < n; i++)
       {
-        Serial.print(c[i]);
+        Serial.print(c[i].sita);
+        Serial.print(c[i].kind);
         Serial.print("   ");
       }
+      Serial.println("");
       break;
     }
     while(Serial1.read()>= 0){} //clear serialbuffer
@@ -223,15 +291,19 @@ void Rec()
 void sort()
 {
   int temp = 0;
+  char ts;
   for (int i = 0; i < n; i++)
   {
     for (int j = i + 1; j < n; j++)
     {
-      if (c[j] < c[i])
+      if (c[j].sita < c[i].sita)
       {
-        temp = c[j];
-        c[j] = c[i];
-        c[i] = temp;
+        temp = c[j].sita;
+        ts = c[j].kind;
+        c[j].sita = c[i].sita;
+        c[j].kind = c[i].kind;
+        c[i].sita = temp;
+        c[i].kind = ts;
       }
     }
   }
@@ -239,19 +311,21 @@ void sort()
 
 void Acture()
 {
-  int flag = 0;
+  int flag = 0; //first
   for (int i = 0; i < n; i++)
   {
     if (flag == 0)
     {
       flag = 1;
-      swirl(int(c[i] * 8.889));
-      Point();
+      swirl(int(c[i].sita * 8.889));
+      if (c[i].kind == 'a') PointLeaf();
+      else if (c[i].kind == 'b') PointFlower();
     }
     else
     {
-      swirl(int((c[i] - c[i - 1]) * 8.889));
-      Point();
+      swirl(int((c[i].sita - c[i - 1].sita) * 8.889));
+      if (c[i].kind == 'a') PointLeaf();
+      else if (c[i].kind == 'b') PointFlower();
     }
     
   }
@@ -276,7 +350,8 @@ void setback()
 void loop() {
   Serial1.println("1");
   Uphands();
-  delay(1000);
+  push.attach(PUSH);
+  push.write(stretchin);
   int count = 0;
   while(count < 12)
   {
@@ -288,7 +363,8 @@ void loop() {
       CheckBase();
       if (t == 0)
       { 
-        delay(1000);
+        GoAhead(150);
+        delay(800);
         Serial1.println("1");
         delay(500);
         PointPose();
@@ -296,7 +372,7 @@ void loop() {
         sort();
         Acture();
         setback();
-        Uphands();
+        WatchPose();
         
         count++;
         GoAhead(2000);
