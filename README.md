@@ -7,7 +7,5 @@
 | threhold_dis  | A threhold for removing the repeated point on one stem |
 | threhold_value | A threhold for removing the repeated boxes |
 ---
-## Our projects will pause for three days 
-Now i want to pull my code into local workspace
-## Our projects will be continue!!!
-Hope our progress will upgrade rapidly.
+## News:
+Rename our standard team's name to 'Plant Patrol'
