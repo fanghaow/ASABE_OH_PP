@@ -9,7 +9,7 @@ import os
 import sys
 
 class boxes():
-    def __init__(self, path = 'standard_competition/randomimg/10008.jpg',center = (260, 260) ,threhold_relative = 0.45 ,threhold_dis = 10):
+    def __init__(self, path = 'IMG_data/10008.jpg',center = (260, 260) ,threhold_relative = 0.45 ,threhold_dis = 10):
         self.path = path 
         self.detect_len = 90
         self.center = center # (480,480)
@@ -235,12 +235,12 @@ def draw_box(img, left_top, right_down, color = 'r'):
     return img
 
 def main():
-    rand_list = np.random.choice(120, 12, False)
+    rand_list = np.random.choice(24, 12, False)
     print('My random list : ',rand_list)
-    time.sleep(5)
+    # time.sleep(5)
     for index,item in enumerate(rand_list): # range(5,120)
         t_start = time.time()
-        my_box = boxes(path = 'standard_competition/IMAGE_JPEG/' + str(10005+index) + '.jpg')
+        my_box = boxes(path = 'IMG_data/' + str(10001+item) + '.jpg')
         (x1,y1), (x2,y2) = my_box.visual_stick()
         white_index = my_box.classification((x1,y1), (x2,y2))
         my_box.visual_result((x1,y1), (x2,y2), white_index)
