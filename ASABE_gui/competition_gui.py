@@ -31,6 +31,20 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
+        # Layout setting
+        self.verticalLayout_1 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_1.setObjectName("verticalLayout_1")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.horizontalLayout_1 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_1.setObjectName("horizontalLayout_1")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+
         #dropdown menu for selecting ip address of Robot 1
         self.dropdown_menu1 = QComboBox(self.centralwidget)
         font = QtGui.QFont()
@@ -119,6 +133,8 @@ class Ui_MainWindow(object):
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(Qt.gray)
         self.graphicsView.setScene(self.scene)
+        # Initial ratio setting
+        self.ratio = self.graphicsView.width() / 1060
         greenBrush = QBrush(Qt.green)   
         yellowBrush = QBrush(Qt.yellow) 
         whiteBrush = QBrush(Qt.white)   
@@ -216,6 +232,27 @@ class Ui_MainWindow(object):
         self.serverRunning = True
         self.serverThread = threading.Thread(target = self.server)
         self.serverThread.start()
+
+        # My Layout Configuration
+        self.verticalLayout_1.addWidget(self.LCD1)
+        self.verticalLayout_1.addWidget(self.dropdown_menu1)
+        self.verticalLayout_2.addWidget(self.LCD2)
+        self.verticalLayout_2.addWidget(self.dropdown_menu2)
+        self.horizontalLayout_1.addWidget(self.clockLCD)
+        self.horizontalLayout_1.addWidget(self.StartButton)
+
+        self.verticalLayout_3.addWidget(self.StandardButton)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_1)
+        self.verticalLayout_3.addWidget(self.AdvancedButton)
+
+        self.horizontalLayout_2.addLayout(self.verticalLayout_1)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+
+        self.verticalLayout_4.addWidget(self.graphicsView)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_4.setStretch(2, 1)
+        self.centralwidget.setLayout(self.verticalLayout_4)
         
     def randomizeRowLayout(self):
         if self.level == 0:
@@ -249,8 +286,9 @@ class Ui_MainWindow(object):
         self.scoreLCDs[robotID].display(score)
 
     def drawPlantAndDetection(self, x, y, plantID, numYellowLeafStems, numFlowerStems):  
-        radius = 15
-        leafSize = 10
+        self.ratio = self.graphicsView.width() / 1060
+        radius = 15 * self.ratio
+        leafSize = 10 * self.ratio
         plantType = self.plantTypes[plantID-1]
         stemList = [0]*plantType[0]
         stemList.extend([1]*plantType[1])
@@ -260,7 +298,7 @@ class Ui_MainWindow(object):
         for i in range(numStems):
             randStemList[i] = stemList[self.stemPatternIndices[numStems-6][i]]
 
-        stepSize = 2*math.pi/(numStems)
+        stepSize = 2 * math.pi/(numStems) * self.ratio
         for i in range(numStems):
             angle = stepSize*i
             self.scene.addEllipse(x+math.sin(angle)*radius, y+math.cos(angle)*radius, leafSize, leafSize, QPen(Qt.gray), self.BrushList[randStemList[i]])
