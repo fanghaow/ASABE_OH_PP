@@ -18,6 +18,10 @@ class Navi():
         GPIO.setup(12, GPIO.OUT) # Servo for Turning
         GPIO.setup(26, GPIO.OUT) # Servo for Camera
         GPIO.setup(24, GPIO.OUT)
+        self.pwm = GPIO.PWM(12, 50)
+        self.pwm.start(8)
+        self.pwm2 = GPIO.PWM(26, 50)
+        self.pwm2.start(8)
 
     def GoAhead(self, step, delay=1e-4):
         for i in range(step):
@@ -27,15 +31,11 @@ class Navi():
             time.sleep(delay)
 
     def Turn(self, angle):
-        pwm = GPIO.PWM(12, 50)
-        pwm.start(8)
-        pwm.ChangeDutyCycle(angle / 18. + 3)
+        self.pwm.ChangeDutyCycle(angle / 18. + 3)
         time.sleep(0.3)
 
     def Localize_Cam(self, angle=100):
-        pwm2 = GPIO.PWM(26, 50)
-        pwm2.start(8)
-        pwm2.ChangeDutyCycle(angle / 18. + 3)
+        self.pwm2.ChangeDutyCycle(angle / 18. + 3)
         time.sleep(0.3)
 
 def main():
@@ -50,8 +50,8 @@ def main():
     #         time.sleep(3000)
     #         nav.GoAhead(2000)
 
-    # GPIO.cleanup()
-    # sys.exit(0)
+    GPIO.cleanup()
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
