@@ -165,7 +165,7 @@ def transita_service():
         yi = (ilst[1] + ilst[3]) / 2
         length = math.sqrt((xi - 500) ** 2 + (yi - 540) ** 2)
         sita = int(math.acos((yi - 540) * (1) / length) / 3.14159 * 180)
-        if xi > 540:
+        if xi > 500:
             sita = 360 - sita
         print(sita)
         lsita.append(sita)
