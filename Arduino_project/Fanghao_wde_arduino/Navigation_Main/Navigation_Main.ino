@@ -33,6 +33,13 @@ Servo push;
 #define stretchflower 80
 #define stretchin 0
 
+//
+# define dist A1
+# define dist_b A0
+float dis;
+float dis_b;
+//
+
 void setup() {
   pinMode(DIR1, OUTPUT);
   pinMode(STP1, OUTPUT);
@@ -161,6 +168,59 @@ void SpeedUp(int SPD){ // Back
     delayMicroseconds(SPD);
   }
 }
+
+void Measure_Dis()
+{
+  float distance;
+  float dis_mean;
+  float dis_sum=0;
+  int read_time = 3;
+  for(int i=0; i<read_time; i++)
+  {
+    distance = analogRead(dist);
+    dis_sum += distance;
+    Serial.print("Distance : ");
+    Serial.println(distance);
+    delay(1);
+  }
+  dis_mean = dis_sum / read_time;
+  Serial.print("Mean Forward Distance is : ");
+  Serial.println(dis_mean);
+  dis = dis_mean;
+}
+
+void Measure_Dis_b()
+{
+  float distance;
+  float dis_mean;
+  float dis_sum=0;
+  int read_time = 3;
+  for(int i=0; i<read_time; i++)
+  {
+    distance = analogRead(dist_b);
+    dis_sum += distance;
+    Serial.print("Distance : ");
+    Serial.println(distance);
+    delay(1);
+  }
+  dis_mean = dis_sum / read_time;
+  Serial.print("Mean Backward Distance is : ");
+  Serial.println(dis_mean);
+  dis_b = dis_mean;
+}
+
+int rounding(float value)
+{
+  float small = value - int(value);
+  if(small < 0.5)
+  {
+    return int(value);
+  }
+  else
+  {
+    return (int(value) + 1);
+  }
+}
 //-----------------------------------------------------------------------
 
 void loop() {
@@ -177,18 +237,18 @@ void loop() {
   }
 //  delay(Dly);
   //
-  for(int i=0; i<Step; i++){
+  for(int i=0; i<Step-500; i++){
     Turn(-2, 100, Ratio+1);
   }
 //  delay(Dly);
-  for(int i=0; i<Step; i++){
+  for(int i=0; i<Step-500; i++){
     Turn(-2, 100, -(Ratio+1));
   }
 //  delay(Dly);
-  //
   for(int i=0; i<100000; i++){
     GoBack(1);
   }
+
 // 匀加速后退
 //  for(int i=0; i<10000; i++)
 //  { 
@@ -199,4 +259,33 @@ void loop() {
 //    GoBack(1, 50);
 //  }
 //  delay(2000);
+
+//// 测距寻迹
+//
+//    Measure_Dis();
+//    dis = rounding(dis);
+//    Serial.print("Global forward distance is ");
+//    Serial.println(dis);
+//    Measure_Dis_b();
+//    dis_b = rounding(dis_b);
+//    Serial.print("Global back distance is ");
+//    Serial.println(dis_b);
+//
+////    dis = 72;
+//  int dis_th = 69;
+//  for(int i=0; i<2000; i++)
+//  {
+//    if(dis_b==dis_th)
+//    {
+//      GoBack(1);
+//    }
+//    else if(dis_b<dis_th)
+//    {
+//      Turn(-2, 100, -2);
+//    }
+//    else if(dis_b>dis_th)
+//    {
+//      Turn(-2, 100, 2);
+//    }
+//  }
 }
