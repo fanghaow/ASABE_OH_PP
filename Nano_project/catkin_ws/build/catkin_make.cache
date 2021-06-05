@@ -1,0 +1,2 @@
+rplidar_ros
+-DCATKIN_DEVEL_PREFIX=/home/fanghaow/dev/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/fanghaow/dev/catkin_ws/install -G Unix Makefiles
