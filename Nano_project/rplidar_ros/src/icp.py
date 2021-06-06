@@ -16,7 +16,7 @@ class ICP:
         # max iterations
         self.max_iter = 50
         # distance threshold for filter the matching points
-        self.dis_th = 0.02
+        self.dis_th = 0.02 # 0.02
         # tolerance to stop icp
         self.tolerance = 7e-18
         # min match
@@ -85,3 +85,4 @@ class ICP:
     #     dx = a[0] - b[0]
     #     dy = a[1] - b[1]
     #     return math.hypot(dx,dy)
+

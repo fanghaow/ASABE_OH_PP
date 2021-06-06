@@ -5,12 +5,12 @@ from matplotlib import animation
 import time
 import os
 
-# global set
+# Global Configuration
 num = 1
 time.sleep(1)
-# filename = "matrix_seat.txt"
-# filename = "matrix_feild.txt"
-filename = "matrix.txt"
+# filename = "Lidar_data/matrix_seat.txt"
+# filename = "Lidar_data/matrix_feild.txt"
+filename = "Lidar_data/matrix.txt"
 
 def reader(number):
     matrix = np.zeros((800,2))
@@ -51,21 +51,24 @@ def reader(number):
 
 # animation function.  This is called sequentially
 def animate(index):
-    global pre_im, is_empty
+    global pre_im, is_empty, num, last_matrix
     print("Index : ", index)
     colors=np.random.rand(360)
     # load_m = plt.scatter(xx, yy, c=colors)
     plt.cla()
-    global num
     matrix = reader(num)
     if (matrix == 0).all():
         time.sleep(0.1)
         print("No completed data get in")
+        print("Distance between origin pos and end pos: ", np.mean(last_matrix, axis=0) - np.mean(ori_matrix, axis=0))
         # return [load_m]
         origin_im = plt.scatter(ori_matrix[:,0],ori_matrix[:,1],s=3)
         plt.xlim(-5,5)
         plt.ylim(-5,5)
         return [origin_im]
+    else:
+        last_matrix = matrix
+        last_matrix = filter(last_matrix)
     num += 1
     im = plt.scatter(matrix[:,0],matrix[:,1],s=3)
     plt.xlim(-5,5)
@@ -73,15 +76,26 @@ def animate(index):
     time.sleep(0.01)
     return [im]
 
+def filter(pc):
+    del_lst = []
+    for i in range(pc.shape[0]):
+        if np.isinf(pc[i,:]).any() or np.isnan(pc[i,:]).any():
+            del_lst.append(i)
+    pc = np.delete(pc, del_lst, axis=0)
+    # print("Their length :", pc.shape[1])
+    return pc
+
 def main():
     time.sleep(2)
     # try:
     #     os.remove("matrix.txt")
     # except:
     #     pass
-    global xx, yy, ori_matrix
+    global xx, yy, ori_matrix, last_matrix
+    last_matrix = np.array([100, 100])
     matrix = reader(2)
     ori_matrix = matrix.copy()
+    ori_matrix = filter(ori_matrix)
     # print(matrix)
     fig = plt.figure()
     im = plt.scatter(matrix[:,0],matrix[:,1],s=3)
