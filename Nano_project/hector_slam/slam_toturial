@@ -1,0 +1,20 @@
+# Connect to Rplidar
+ls -l /dev |grep ttyUSB
+sudo chmod 666 /dev/ttyUSB0
+# Launch slam
+cd slam_ws/
+source devel/setup.bash
+Terminal1:
+roslaunch rplidar_ros rplidar.launch
+Terminal2:
+roslaunch rplidar_ros hector_mapping_demo.launch
+# Set real time
+rostopic echo /map : sim_time
+rosparam get use_sim_time
+rosparam set use_sim_time false
+# Publish origin map once
+Save map:
+rosrun map_server map_saver -f mymap
+Publish map:
+rosrun map_server map_server mymap.yaml
+
