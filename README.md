@@ -9,3 +9,5 @@
 ---
 ## News:
 Rename our standard team's name to 'Plant Patrol'
+## Submission
+Submit our final report and video at 12：00 in July, 6. 
